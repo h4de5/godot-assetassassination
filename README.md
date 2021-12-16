@@ -1,4 +1,4 @@
-[![godot-export](https://github.com/PanLabGameDev/godot-boilerplate/actions/workflows/godot-export.yml/badge.svg)](https://github.com/PanLabGameDev/godot-boilerplate/actions/workflows/godot-export.yml)
+[![godot export](https://github.com/h4de5/godot-assetassassination/actions/workflows/godot-export.yml/badge.svg)](https://github.com/h4de5/godot-assetassassination/actions/workflows/godot-export.yml)
 
 # godot-boilerplate
 
