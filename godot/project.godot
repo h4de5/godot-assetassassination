@@ -10,8 +10,8 @@ config_version=4
 
 [application]
 
-config/name="Game"
-config/description="A game made in godot using the PanLab boilerplate."
+config/name="AssetAssassination"
+config/description="Like CandyCrush but better with much more Ass"
 run/main_scene="res://main.tscn"
 config/icon="res://icon.png"
 config/macos_native_icon="res://icon.icns"
