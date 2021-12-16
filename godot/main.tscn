@@ -5,5 +5,5 @@
 [node name="Node2D" type="Sprite"]
 texture = ExtResource( 1 )
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera" type="Camera2D" parent="."]
 current = true
