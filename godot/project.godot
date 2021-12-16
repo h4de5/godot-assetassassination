@@ -8,6 +8,16 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "Node2D",
+"class": "RasterItem",
+"language": "GDScript",
+"path": "res://RasterItem.gd"
+} ]
+_global_script_class_icons={
+"RasterItem": ""
+}
+
 [application]
 
 config/name="AssetAssassination"
@@ -16,6 +26,12 @@ run/main_scene="res://main.tscn"
 config/icon="res://icon.png"
 config/macos_native_icon="res://icon.icns"
 config/windows_native_icon="res://icon.ico"
+
+[display]
+
+window/size/height=800
+window/stretch/mode="viewport"
+window/stretch/aspect="expand"
 
 [physics]
 
