@@ -1,6 +1,7 @@
 extends Node2D
 class_name RasterItem
 
+
 # on mouse down, draggin starts
 signal StartDragging
 # on mouse up, draggin ends
@@ -11,6 +12,8 @@ var isDragging = false
 # when item is released and currently switching
 # will be reset, when movement is 100% complete
 var isSwitching = false
+# will be true if the item will be cleaned/removed on next refresh
+var toBeCleaned = false
 
 # column position in the grid
 var rasterX = 0
@@ -39,8 +42,10 @@ func _ready():
 	var scale = Vector2( tw / spritesize.x, th / spritesize.y)
 	sprite.scale = scale
 	
-	get_node("Area2D/TextEdit").text = str(itemId)
-
+func _process(delta):
+	if Engine.get_frames_drawn() % 60 == 0:
+		get_node("Area2D/TextEdit").text = str(itemId) + "\n" + str(rasterY)+"-"+str(rasterX)
+		
 func startSelection():
 	get_node("Area2D/AnimationPlayer").play("StartDragging")
 #	print("should animate")
@@ -59,7 +64,18 @@ func _on_Area2D_input_event(viewport, event, shape_idx):
 		else:
 			emit_signal("EndDragging", self)
 #			printt('dropped item', event, shape_idx, name)
-		
+
+func startTween(toPosition):
+	var tween = get_node("Tween")
+	
+	tween.interpolate_property(self, "position",
+			self.position, toPosition, get_parent().switchingTime,
+			Tween.TRANS_BOUNCE, Tween.EASE_OUT)
+
+	tween.connect("tween_step", get_parent(), "_on_Tween_step", [self])
+	tween.connect("tween_all_completed", get_parent(), "_on_Tween_all_completed", [self])
+
+	tween.start()
 
 func _on_Area2D_mouse_entered():
 	pass # Replace with function body.
