@@ -54,6 +54,14 @@ shape = SubResource( 1 )
 anims/RESET = SubResource( 2 )
 anims/StartDragging = SubResource( 3 )
 
+[node name="TextEdit" type="TextEdit" parent="Area2D"]
+visible = false
+margin_left = -40.0
+margin_bottom = 40.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [connection signal="input_event" from="Area2D" to="." method="_on_Area2D_input_event"]
 [connection signal="mouse_entered" from="Area2D" to="." method="_on_Area2D_mouse_entered"]
 [connection signal="mouse_exited" from="Area2D" to="." method="_on_Area2D_mouse_exited"]

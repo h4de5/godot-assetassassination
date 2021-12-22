@@ -24,9 +24,9 @@ const image_list = ["04.png", "08.png", "12.png", "15.png", "16.png"]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	randomize()
-	if(itemId == -1):
-		itemId = randi() % image_list.size() - 1
+#	randomize()
+#	if(itemId == -1):
+#		itemId = randi() % image_list.size() - 1
 		
 	var image = image_list[itemId]
 	var sprite = get_node("Area2D/Sprite")
@@ -38,6 +38,8 @@ func _ready():
 	var tw = 64 * 1.1 #target width
 	var scale = Vector2( tw / spritesize.x, th / spritesize.y)
 	sprite.scale = scale
+	
+	get_node("Area2D/TextEdit").text = str(itemId)
 
 func startSelection():
 	get_node("Area2D/AnimationPlayer").play("StartDragging")
@@ -53,10 +55,10 @@ func _on_Area2D_input_event(viewport, event, shape_idx):
 	if event is InputEventMouseButton:
 		if event.is_pressed():
 			emit_signal("StartDragging", self)
-			printt('clicked item', event, shape_idx, name)
+#			printt('clicked item', event, shape_idx, name)
 		else:
 			emit_signal("EndDragging", self)
-			printt('dropped item', event, shape_idx, name)
+#			printt('dropped item', event, shape_idx, name)
 		
 
 func _on_Area2D_mouse_entered():
