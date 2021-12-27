@@ -18,21 +18,23 @@ func _ready():
 	randomize()
 	
 	yield(get_tree(), "idle_frame")
-
-	for y in range(Vars.GRID_MAX_ROWS):
-		for x in range(Vars.GRID_MAX_COLS):
-			var ItemNode = RasterItem.instance()
-			ItemNode.position.x = x * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_COLS/2 * Vars.GRID_ITEM_SIZE
-			ItemNode.position.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
-			ItemNode.rasterX = x
-			ItemNode.rasterY = y
-			ItemNode.itemId = randi() % Vars.ITEM_LIST_SPRITES.size()
-			# Item Naming convention
-			ItemNode.name = "Item "+ str(y) + "-" + str(x)
-			
-			ItemNode.connect("StartDragging", self, "startDragging")
-			ItemNode.connect("EndDragging", self, "endDragging")
-			add_child(ItemNode)
+#
+#	for y in range(Vars.GRID_MAX_ROWS):
+#		for x in range(Vars.GRID_MAX_COLS):
+#			var ItemNode = RasterItem.instance()
+#			ItemNode.position.x = x * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_COLS/2 * Vars.GRID_ITEM_SIZE
+#			ItemNode.position.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
+#			ItemNode.rasterX = x
+#			ItemNode.rasterY = y
+#			ItemNode.itemId = randi() % Vars.ITEM_LIST_SPRITES.size()
+#			# Item Naming convention
+#			ItemNode.name = "Item "+ str(y) + "-" + str(x)
+#
+#			ItemNode.connect("StartDragging", self, "startDragging")
+#			ItemNode.connect("EndDragging", self, "endDragging")
+#			add_child(ItemNode)
+	for x in range(Vars.GRID_MAX_COLS):
+		createNewItem(Vars.GRID_MAX_ROWS, x)
 
 
 # checks if there is space below an item
@@ -47,10 +49,50 @@ func checkFreeSpace():
 				freeSpace += 1
 			elif freeSpace > 0:
 				item.dropByPlaces(freeSpace)
+				
+		if freeSpace > 0:
+			createNewItem(freeSpace, x)
+#			checkCombos()
 #		if freeSpace > 0:
 #			var item = getGridItem(x, 0)
 #			item.dropByPlaces(freeSpace)
 			
+# create a defined number of new items on the given x coordinate, that will drop ..
+func createNewItem(rowItemCount, x):
+	
+	for y in range(rowItemCount):
+		
+		"""
+			Y
+			Y
+		x x   x
+		x x   x
+		x x x x
+		x x x x
+		"""
+			
+		var ItemNode = RasterItem.instance()
+		ItemNode.position.x = x * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_COLS/2 * Vars.GRID_ITEM_SIZE
+		ItemNode.position.y = (rowItemCount * -1 + y) * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE 
+#		ItemNode.position.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
+		var targetPosition: Vector2
+		targetPosition.x = ItemNode.position.x
+		targetPosition.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
+		
+		ItemNode.rasterX = x
+		ItemNode.rasterY = y
+		
+		ItemNode.itemId = randi() % Vars.ITEM_LIST_SPRITES.size()
+		# Item Naming convention
+		ItemNode.name = "Item "+ str(y) + "-" + str(x)
+		
+		ItemNode.connect("StartDragging", self, "startDragging")
+		ItemNode.connect("EndDragging", self, "endDragging")
+#		ItemNode.isSwitching = true
+		add_child(ItemNode)
+		
+		yield(get_tree(), "idle_frame") 
+		ItemNode.startTween(targetPosition)
 	
 # checks if there are any items that can be marked for deletion
 func checkCombos():

@@ -23,8 +23,6 @@ var rasterY = 0
 var itemId = -1
 
 
-
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 #	randomize()
@@ -72,6 +70,10 @@ func _on_Area2D_input_event(viewport, event, shape_idx):
 func startTween(toPosition: Vector2):
 	var tween = get_node("Tween")
 	
+	if tween.is_active():
+		tween.stop_all()
+		tween.seek(Vars.TIME_SWITCHING)
+	
 	tween.interpolate_property(self, "position",
 			self.position, toPosition, Vars.TIME_SWITCHING,
 			Tween.TRANS_BOUNCE, Tween.EASE_OUT)
@@ -80,8 +82,10 @@ func startTween(toPosition: Vector2):
 
 func dropByPlaces(itemCount: int):
 	if itemCount > 0:
-		var newPos = Vector2(self.position.x, self.position.y + itemCount * Vars.GRID_ITEM_SIZE)
 		rasterY += itemCount
+#		var newPos = Vector2(self.position.x, rasterY * Vars.GRID_ITEM_SIZE)
+		var newPos = Vector2(self.position.x, rasterY * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE)
+		
 		name = "Item "+ str(rasterY) + "-" + str(rasterX)
 		isSwitching = true
 		startTween(newPos)

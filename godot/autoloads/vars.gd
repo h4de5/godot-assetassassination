@@ -5,9 +5,9 @@ const GRID_ITEM_SIZE = 65
 # size of one image within the grid
 #const GRID_SPRITE_SIZE = 64 * 1.1
 # maxium colums in the grid
-const GRID_MAX_COLS = 12
+const GRID_MAX_COLS = 10
 # maxium rows in the grid
-const GRID_MAX_ROWS = 12
+const GRID_MAX_ROWS = 10
 
 # time in seconds that a switch will take
 const TIME_SWITCHING = 0.75
