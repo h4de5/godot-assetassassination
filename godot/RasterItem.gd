@@ -23,7 +23,7 @@ var rasterY = 0
 var itemId = -1
 
 
-const image_list = ["04.png", "08.png", "12.png", "15.png", "16.png"]
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -31,16 +31,20 @@ func _ready():
 #	if(itemId == -1):
 #		itemId = randi() % image_list.size() - 1
 		
-	var image = image_list[itemId]
+	var image = Vars.ITEM_LIST_SPRITES[itemId]
 	var sprite = get_node("Area2D/Sprite")
 	sprite.texture = load('assets/'+ image)
 #	sprite.rotation_degrees = randi() % 360
 	var spritesize = sprite.get_texture().get_size()
 		
-	var th = 64 * 1.1 #target height
-	var tw = 64 * 1.1 #target width
+	var th = Vars.GRID_ITEM_SIZE #target height
+	var tw = Vars.GRID_ITEM_SIZE #target width
 	var scale = Vector2( tw / spritesize.x, th / spritesize.y)
 	sprite.scale = scale
+	
+	var tween = get_node("Tween")
+	tween.connect("tween_step", get_parent(), "_on_Tween_step", [self])
+	tween.connect("tween_all_completed", get_parent(), "_on_Tween_all_completed", [self])
 	
 func _process(delta):
 	if Engine.get_frames_drawn() % 60 == 0:
@@ -65,17 +69,23 @@ func _on_Area2D_input_event(viewport, event, shape_idx):
 			emit_signal("EndDragging", self)
 #			printt('dropped item', event, shape_idx, name)
 
-func startTween(toPosition):
+func startTween(toPosition: Vector2):
 	var tween = get_node("Tween")
 	
 	tween.interpolate_property(self, "position",
-			self.position, toPosition, get_parent().switchingTime,
+			self.position, toPosition, Vars.TIME_SWITCHING,
 			Tween.TRANS_BOUNCE, Tween.EASE_OUT)
 
-	tween.connect("tween_step", get_parent(), "_on_Tween_step", [self])
-	tween.connect("tween_all_completed", get_parent(), "_on_Tween_all_completed", [self])
-
 	tween.start()
+
+func dropByPlaces(itemCount: int):
+	if itemCount > 0:
+		var newPos = Vector2(self.position.x, self.position.y + itemCount * Vars.GRID_ITEM_SIZE)
+		rasterY += itemCount
+		name = "Item "+ str(rasterY) + "-" + str(rasterX)
+		isSwitching = true
+		startTween(newPos)
+		
 
 func _on_Area2D_mouse_entered():
 	pass # Replace with function body.

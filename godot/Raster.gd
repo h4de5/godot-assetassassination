@@ -2,57 +2,66 @@ extends Node2D
 
 const RasterItem = preload('RasterItem.tscn')
 
-# size of one item
-const GRID_ITEM_SIZE = 70
-# maxium colums in the grid
-const GRID_MAX_COLS = 10
-# maxium rows in the grid
-const GRID_MAX_ROWS = 10
-
-# time in seconds that a switch will take
-const switchingTime = 0.75
-
-
 
 # currently dragged item
 var draggingItem : RasterItem
 # when true, it is not allowed to trigger another switch
 var isSwitching = false
-
-# current grid
-#var grid = [[]]
+# when checking board is in progress, this is true
+var isChecking = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 #	remove_child(get_node("RasterItem"))
 	get_node("RasterItem").queue_free()
 	
+	randomize()
+	
 	yield(get_tree(), "idle_frame")
 
-	for y in range(GRID_MAX_COLS):
-		for x in range(GRID_MAX_ROWS):
+	for y in range(Vars.GRID_MAX_ROWS):
+		for x in range(Vars.GRID_MAX_COLS):
 			var ItemNode = RasterItem.instance()
-			ItemNode.position.x = x * GRID_ITEM_SIZE - GRID_MAX_COLS/2 * GRID_ITEM_SIZE
-			ItemNode.position.y = y * GRID_ITEM_SIZE - GRID_MAX_ROWS/2 * GRID_ITEM_SIZE
+			ItemNode.position.x = x * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_COLS/2 * Vars.GRID_ITEM_SIZE
+			ItemNode.position.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
 			ItemNode.rasterX = x
 			ItemNode.rasterY = y
-			ItemNode.itemId = randi() % 5 
+			ItemNode.itemId = randi() % Vars.ITEM_LIST_SPRITES.size()
 			# Item Naming convention
 			ItemNode.name = "Item "+ str(y) + "-" + str(x)
-
+			
 			ItemNode.connect("StartDragging", self, "startDragging")
 			ItemNode.connect("EndDragging", self, "endDragging")
 			add_child(ItemNode)
 
+
+# checks if there is space below an item
+
+func checkFreeSpace():
+	
+	for x in range(Vars.GRID_MAX_ROWS):
+		var freeSpace = 0
+		for y in range(Vars.GRID_MAX_COLS - 1, -1, -1):
+			var item = getGridItem(x, y)
+			if not item or item.toBeCleaned:
+				freeSpace += 1
+			elif freeSpace > 0:
+				item.dropByPlaces(freeSpace)
+#		if freeSpace > 0:
+#			var item = getGridItem(x, 0)
+#			item.dropByPlaces(freeSpace)
+			
+	
 # checks if there are any items that can be marked for deletion
 func checkCombos():
+	
 	var checkAgain = false
 	
-	for y in range(GRID_MAX_COLS):
+	for y in range(Vars.GRID_MAX_ROWS):
 		var counter = 0
 		var lastItemId = -1
 
-		for x in range(GRID_MAX_ROWS):
+		for x in range(Vars.GRID_MAX_COLS):
 			
 			var item = getGridItem(x,y)
 			if item:
@@ -68,12 +77,14 @@ func checkCombos():
 					getGridItem(x-1, y).toBeCleaned = true
 					getGridItem(x-2, y).toBeCleaned = true
 					checkAgain = true
+			else:
+				lastItemId = -1
 
-	for x in range(GRID_MAX_ROWS):
+	for x in range(Vars.GRID_MAX_COLS):
 		var counter = 0
 		var lastItemId = -1
 
-		for y in range(GRID_MAX_COLS):
+		for y in range(Vars.GRID_MAX_ROWS):
 			
 			var item = getGridItem(x,y)
 			if item:
@@ -84,11 +95,13 @@ func checkCombos():
 					lastItemId = item.itemId
 
 				if counter >= 3:
-					printt("Found", lastItemId ,"group in ", y, x)
+					printt("Found", lastItemId ,"group in", y, x)
 					item.toBeCleaned = true
 					getGridItem(x, y-1).toBeCleaned = true
 					getGridItem(x, y-2).toBeCleaned = true
 					checkAgain = true
+			else:
+				lastItemId = -1
 
 	return checkAgain
 
@@ -99,24 +112,26 @@ func getGridItem(x: int, y: int) -> RasterItem:
 # removes all items that are marked for deletion
 func cleanRaster():
 	var cleanAgain = true
-	while cleanAgain == true:
+	var hasRemoved = false
+#	while cleanAgain == true:
 
-		cleanAgain = checkCombos()
-		if cleanAgain:
-			for y in range(GRID_MAX_COLS):
-				for x in range(GRID_MAX_ROWS):
-					var item = getGridItem(x,y)
-					if item:
-#						printt("checking ", y, x, item)
-						
-						if item.toBeCleaned:
-#							printt("removing group at ", y, x)
-							item.itemId = -2
-							# ToDo queue_free
-							remove_child(getGridItem(x,y))
+	cleanAgain = checkCombos()
+	if cleanAgain:
+		for y in range(Vars.GRID_MAX_ROWS):
+			for x in range(Vars.GRID_MAX_COLS):
+				var item = getGridItem(x,y)
+				if item:
+					if item.toBeCleaned:
+						item.itemId = -2
+						hasRemoved = true
+						remove_child(getGridItem(x,y))
+		if hasRemoved:
+			checkFreeSpace()
+	else:
+		print("no groups found")
+	isChecking = false
 		
-		else:
-			print("no groups found")
+	
 
 
 # starts dragging an item
@@ -191,17 +206,26 @@ func endDragging(targetItem: RasterItem):
 
 # when all movement is done, allow switching again and remove tween
 func _on_Tween_all_completed(item: RasterItem):
-#	printt("all movement completed")
-	isSwitching = false
-	item.isSwitching = false
-#	item.remove_child(item.get_node("Tween"))
+	
 
-	cleanRaster()
+	if item.isSwitching:
+		printt("all movement completed")
+		isSwitching = false
+		item.isSwitching = false
+	#	item.remove_child(item.get_node("Tween"))
+#		if not isChecking:
+
+		if isChecking:
+			return
+				
+		isChecking = true
+#		cleanRaster()
+		call_deferred("cleanRaster")
 
 # when movement is done mostly, allow switching again
 func _on_Tween_step(object, key, elapsed, value, item: RasterItem):
 	# allow switching of other items, after 40% of switching time
-	if elapsed > switchingTime * 0.4 and isSwitching:
+	if elapsed > Vars.TIME_SWITCHING * 0.4 and isSwitching:
 #		printt("movement at", key, elapsed, value)
 		isSwitching = false
 

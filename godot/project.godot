@@ -27,6 +27,10 @@ config/icon="res://icon.png"
 config/macos_native_icon="res://icon.icns"
 config/windows_native_icon="res://icon.ico"
 
+[autoload]
+
+Vars="*res://autoloads/vars.gd"
+
 [display]
 
 window/size/height=800
