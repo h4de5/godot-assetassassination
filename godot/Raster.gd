@@ -10,6 +10,9 @@ var isSwitching = false
 # when checking board is in progress, this is true
 var isChecking = false
 
+# combo counter for pitching sound and later for score
+var comboCount = 0
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 #	remove_child(get_node("RasterItem"))
@@ -159,6 +162,7 @@ func cleanRaster():
 
 	cleanAgain = checkCombos()
 	if cleanAgain:
+		comboCount += 1
 		for y in range(Vars.GRID_MAX_ROWS):
 			for x in range(Vars.GRID_MAX_COLS):
 				var item = getGridItem(x,y)
@@ -168,8 +172,10 @@ func cleanRaster():
 						hasRemoved = true
 						remove_child(getGridItem(x,y))
 		if hasRemoved:
+			SoundManager.play("res://assets/sounds/coin_02.wav", 1.0 + comboCount / 4.0, 0)
 			checkFreeSpace()
 	else:
+		comboCount = 0
 		print("no groups found")
 	isChecking = false
 		
@@ -251,7 +257,7 @@ func _on_Tween_all_completed(item: RasterItem):
 	
 
 	if item.isSwitching:
-		printt("all movement completed")
+#		printt("all movement completed")
 		isSwitching = false
 		item.isSwitching = false
 	#	item.remove_child(item.get_node("Tween"))
