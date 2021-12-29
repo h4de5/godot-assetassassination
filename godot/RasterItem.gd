@@ -43,8 +43,8 @@ func _ready():
 	var tween = get_node("Tween")
 	tween.connect("tween_step", get_parent(), "_on_Tween_step", [self])
 	tween.connect("tween_all_completed", get_parent(), "_on_Tween_all_completed", [self])
-	
-func _process(delta):
+
+func _process(_delta):
 	if Engine.get_frames_drawn() % 60 == 0:
 		get_node("Area2D/TextEdit").text = str(itemId) + "\n" + str(rasterY)+"-"+str(rasterX)
 		
@@ -58,7 +58,7 @@ func endSelection():
 #	print("stop animate")
 	
 
-func _on_Area2D_input_event(viewport, event, shape_idx):
+func _on_Area2D_input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton:
 		if event.is_pressed():
 			emit_signal("StartDragging", self)
@@ -83,8 +83,8 @@ func startTween(toPosition: Vector2):
 func dropByPlaces(itemCount: int):
 	if itemCount > 0:
 		rasterY += itemCount
-#		var newPos = Vector2(self.position.x, rasterY * Vars.GRID_ITEM_SIZE)
-		var newPos = Vector2(self.position.x, rasterY * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE)
+#		var newPos = Vector2(self.position.x, rasterY * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE)
+		var newPos = Vector2(self.position.x, rasterY * Vars.GRID_ITEM_SIZE)
 		
 		name = "Item "+ str(rasterY) + "-" + str(rasterX)
 		isSwitching = true

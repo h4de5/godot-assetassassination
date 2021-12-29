@@ -13,6 +13,7 @@ var isChecking = false
 # combo counter for pitching sound and later for score
 var comboCount = 0
 
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 #	remove_child(get_node("RasterItem"))
@@ -38,6 +39,17 @@ func _ready():
 #			add_child(ItemNode)
 	for x in range(Vars.GRID_MAX_COLS):
 		createNewItem(Vars.GRID_MAX_ROWS, x)
+		
+		
+	# set camera 
+	var camera = get_node("Camera")
+	camera.position = Vector2(Vars.GRID_ITEM_SIZE, Vars.GRID_ITEM_SIZE) * -1	
+
+	OS.window_size = Vector2(Vars.GRID_MAX_COLS, Vars.GRID_MAX_ROWS) * Vars.GRID_ITEM_SIZE + camera.position * -1
+#	OS.window_size = Vector2(GRID_MAX_COLS, GRID_MAX_ROWS) * GRID_ITEM_SIZE + Vector2(GRID_ITEM_SIZE, GRID_ITEM_SIZE)
+	
+	get_tree().set_screen_stretch(SceneTree.STRETCH_MODE_VIEWPORT, SceneTree.STRETCH_ASPECT_EXPAND, OS.window_size, 1)
+	
 
 
 # checks if there is space below an item
@@ -75,12 +87,16 @@ func createNewItem(rowItemCount, x):
 		"""
 			
 		var ItemNode = RasterItem.instance()
-		ItemNode.position.x = x * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_COLS/2 * Vars.GRID_ITEM_SIZE
-		ItemNode.position.y = (rowItemCount * -1 + y) * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE 
+#		ItemNode.position.x = x * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_COLS/2 * Vars.GRID_ITEM_SIZE
+#		ItemNode.position.y = (rowItemCount * -1 + y) * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
+		ItemNode.position.x = x * Vars.GRID_ITEM_SIZE
+		ItemNode.position.y = (rowItemCount * -1 + y) * Vars.GRID_ITEM_SIZE
+		
 #		ItemNode.position.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
-		var targetPosition: Vector2
+		var targetPosition = Vector2(0,0)
 		targetPosition.x = ItemNode.position.x
-		targetPosition.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
+#		targetPosition.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
+		targetPosition.y = y * Vars.GRID_ITEM_SIZE
 		
 		ItemNode.rasterX = x
 		ItemNode.rasterY = y
@@ -208,7 +224,6 @@ func endDragging(targetItem: RasterItem):
 			
 			var oldX = targetItem.rasterX
 			var oldY = targetItem.rasterY
-			var oldItemId = targetItem.itemId
 
 			targetItem.rasterX = draggingItem.rasterX
 			targetItem.rasterY = draggingItem.rasterY
@@ -271,7 +286,7 @@ func _on_Tween_all_completed(item: RasterItem):
 		call_deferred("cleanRaster")
 
 # when movement is done mostly, allow switching again
-func _on_Tween_step(object, key, elapsed, value, item: RasterItem):
+func _on_Tween_step(_object, _key, elapsed, _value, _item: RasterItem):
 	# allow switching of other items, after 40% of switching time
 	if elapsed > Vars.TIME_SWITCHING * 0.4 and isSwitching:
 #		printt("movement at", key, elapsed, value)

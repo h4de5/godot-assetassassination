@@ -5,7 +5,7 @@ extends Node
 #func _ready():
 #	sounds = []
 
-func play(sound, pitch = 1.0, pitch_range = 0.05, position = null, parent = self):
+func play(sound, pitch = 1.0, _pitch_range = 0.05, position = null, parent = self):
 	var audio_stream
 
 	if position != null:
