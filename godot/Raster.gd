@@ -41,7 +41,7 @@ func correctWindowSize():
 	camera.zoom = (Vector2(Vars.GRID_MAX_ROWS, Vars.GRID_MAX_COLS) * Vars.GRID_ITEM_SIZE + camera.position * -1) / Vector2(minSize, minSize) 
 	
 	
-	printt("zoom", camera.zoom, "position", camera.position, "window", OS.window_size, "minSize", minSize)
+#	printt("zoom", camera.zoom, "position", camera.position, "window", OS.window_size, "minSize", minSize)
 
 #	OS.window_size = Vector2(Vars.GRID_MAX_COLS, Vars.GRID_MAX_ROWS) * Vars.GRID_ITEM_SIZE + camera.position * -1
 #	OS.window_size = Vector2(GRID_MAX_COLS, GRID_MAX_ROWS) * GRID_ITEM_SIZE + Vector2(GRID_ITEM_SIZE, GRID_ITEM_SIZE)
