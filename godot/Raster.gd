@@ -10,10 +10,6 @@ var isSwitching = false
 # when checking board is in progress, this is true
 var isChecking = false
 
-# combo counter for pitching sound and later for score
-var comboCount = 0
-
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 #	remove_child(get_node("RasterItem"))
@@ -30,10 +26,12 @@ func _ready():
 	
 	get_tree().get_root().connect("size_changed", self, "correctWindowSize")
 	
+	ScoreManager.reset()
+	
 	
 func correctWindowSize():
 	# set camera 
-	var camera = get_node("Camera")
+	var camera = get_tree().current_scene.find_node("Camera")
 	camera.position = Vector2(Vars.GRID_ITEM_SIZE, Vars.GRID_ITEM_SIZE) * -1
 	
 	var minSize = min(OS.window_size.x, OS.window_size.y)
@@ -138,11 +136,17 @@ func checkCombos():
 					lastItemId = item.itemId
 
 				if counter >= 3:
-					printt("Found", lastItemId ,"group in ", y, x)
+#					printt("Found", lastItemId ,"group in", y, x)
 					item.toBeCleaned = true
-					getGridItem(x-1, y).toBeCleaned = true
-					getGridItem(x-2, y).toBeCleaned = true
+					var node : RasterItem
+					node = getGridItem(x-1, y)
+					if node != null:
+						node.toBeCleaned = true
+					node = getGridItem(x-2, y)
+					if node != null:
+						node.toBeCleaned = true
 					checkAgain = true
+					ScoreManager.addComboScore(counter)
 			else:
 				lastItemId = -1
 
@@ -161,11 +165,17 @@ func checkCombos():
 					lastItemId = item.itemId
 
 				if counter >= 3:
-					printt("Found", lastItemId ,"group in", y, x)
+#					printt("Found", lastItemId ,"group in", y, x)
 					item.toBeCleaned = true
-					getGridItem(x, y-1).toBeCleaned = true
-					getGridItem(x, y-2).toBeCleaned = true
+					var node : RasterItem
+					node = getGridItem(x, y-1)
+					if node != null:
+						node.toBeCleaned = true
+					node = getGridItem(x, y-2)
+					if node != null:
+						node.toBeCleaned = true
 					checkAgain = true
+					ScoreManager.addComboScore(counter)
 			else:
 				lastItemId = -1
 
@@ -173,7 +183,11 @@ func checkCombos():
 
 func getGridItem(x: int, y: int) -> RasterItem:
 	# Item Naming convention
-	return get_node("Item "+ str(y) + "-" + str(x)) as RasterItem
+	var nodeName = "Item "+ str(y) + "-" + str(x)
+	if has_node(nodeName):
+		return get_node("Item "+ str(y) + "-" + str(x)) as RasterItem
+	else:
+		return null
 
 # removes all items that are marked for deletion
 func cleanRaster():
@@ -183,7 +197,7 @@ func cleanRaster():
 
 	cleanAgain = checkCombos()
 	if cleanAgain:
-		comboCount += 1
+		ScoreManager.increaseMultiplier()
 		for y in range(Vars.GRID_MAX_ROWS):
 			for x in range(Vars.GRID_MAX_COLS):
 				var item = getGridItem(x,y)
@@ -193,14 +207,14 @@ func cleanRaster():
 						hasRemoved = true
 						remove_child(getGridItem(x,y))
 		if hasRemoved:
-			SoundManager.play("res://assets/sounds/coin_02.wav", 1.0 + comboCount / 4.0, 0)
+			SoundManager.play("res://assets/sounds/coin_02.wav", 1.0 + ScoreManager.multiplier_current /  4.0, 0)
 			checkFreeSpace()
 	else:
-		comboCount = 0
-		print("no groups found")
+		ScoreManager.resetMultiplier()
+#		print("no groups found")
 	isChecking = false
 		
-	
+
 
 
 # starts dragging an item

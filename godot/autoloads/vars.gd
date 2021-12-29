@@ -16,3 +16,5 @@ const TIME_SWITCHING = 0.75
 const ITEM_LIST_SPRITES = ["04.png", "08.png", "12.png", "15.png", "16.png"]
 #const ITEM_LIST_SPRITES = ["04.png", "08.png", "12.png", "15.png"]
 #const ITEM_LIST_SPRITES = ["04.png"]
+
+const BASE_SCORE = 100

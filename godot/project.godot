@@ -31,6 +31,7 @@ config/windows_native_icon="res://icon.ico"
 
 Vars="*res://autoloads/vars.gd"
 SoundManager="*res://autoloads/sound_manager.gd"
+ScoreManager="*res://autoloads/score_manager.gd"
 
 [display]
 
