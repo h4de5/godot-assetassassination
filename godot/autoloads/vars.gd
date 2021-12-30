@@ -1,7 +1,7 @@
 extends Node
 
 # size of one grid item
-const GRID_ITEM_SIZE = 65
+const GRID_ITEM_SIZE = 64
 # size of one image within the grid
 #const GRID_SPRITE_SIZE = 64 * 1.1
 # maxium colums in the grid
@@ -14,7 +14,7 @@ const TIME_SWITCHING = 0.75
 
 
 const ITEM_LIST_SPRITES = ["04.png", "08.png", "12.png", "15.png", "16.png"]
-#const ITEM_LIST_SPRITES = ["04.png", "08.png", "12.png", "15.png"]
+#const ITEM_LIST_SPRITES = ["04.png", "08.png", "12.png",]
 #const ITEM_LIST_SPRITES = ["04.png"]
 
 const BASE_SCORE = 100

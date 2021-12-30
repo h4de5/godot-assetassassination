@@ -1,6 +1,6 @@
 extends Node2D
 
-const RasterItem = preload('RasterItem.tscn')
+const RasterItemNode = preload('RasterItem.tscn')
 
 
 # currently dragged item
@@ -12,14 +12,8 @@ var isChecking = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-#	remove_child(get_node("RasterItem"))
-	get_node("RasterItem").queue_free()
-	randomize()
-	
-	yield(get_tree(), "idle_frame")
 
-	for x in range(Vars.GRID_MAX_COLS):
-		createNewItem(Vars.GRID_MAX_ROWS, x)
+	resetBoard()
 	
 	yield(get_tree(), "idle_frame") 
 	correctWindowSize();
@@ -28,35 +22,72 @@ func _ready():
 	
 	ScoreManager.reset()
 	
+func resetBoard():
+#	get_node("RasterItem").queue_free()
 	
+	for x in get_children():
+		if x is RasterItem:
+#			print(x.name)
+			x.queue_free()
+	yield(get_tree(), "idle_frame")
+	
+	randomize()
+	
+	for x in range(Vars.GRID_MAX_COLS):
+		createNewItem(Vars.GRID_MAX_ROWS, x)
+	
+func fixBoard():
+#	print("Fixing board")
+	for x in get_children():
+		if x is RasterItem:
+			if x.name.begins_with("Item") == false:
+				printt("Invalid item name", x.name)
+				x.queue_free()
+	yield(get_tree(), "idle_frame")
+	
+	for x in range(Vars.GRID_MAX_ROWS):
+		for y in range(Vars.GRID_MAX_COLS):
+			var node = getGridItem(x, y)
+			if node == null:
+				printt("missing node on ", x, y)
+				checkFreeSpace()
+			else:
+				if node.rasterX != x:
+					printt("invalid x raster position", node.rasterX, "should be", x)
+					node.rasterX = x
+				if node.rasterY != y:
+					printt("invalid y raster position", node.rasterY, "should be", y)
+					node.rasterY = y
+				if node.position.x != x * Vars.GRID_ITEM_SIZE:
+#					printt("invalid x global position", node.position.x, "should be", x * Vars.GRID_ITEM_SIZE)
+					node.position.x = x * Vars.GRID_ITEM_SIZE
+				if node.position.y != y * Vars.GRID_ITEM_SIZE:
+#					printt("invalid y global position", node.position.y, "should be", y * Vars.GRID_ITEM_SIZE)
+					node.position.y = y * Vars.GRID_ITEM_SIZE
+				# TODO - check for duplicated x/y positions
+		
 func correctWindowSize():
 	# set camera 
-	var camera = get_tree().current_scene.find_node("Camera")
-	camera.position = Vector2(Vars.GRID_ITEM_SIZE, Vars.GRID_ITEM_SIZE) * -1
+	var guiOffset = get_tree().current_scene.find_node("Scores")
 	
-	var minSize = min(OS.window_size.x, OS.window_size.y)
-	var maxSize = max(OS.window_size.x, OS.window_size.y)
+	var camera: Camera2D = get_tree().current_scene.find_node("Camera")
+	var gridSize = Vector2(Vars.GRID_MAX_COLS, Vars.GRID_MAX_ROWS) * Vars.GRID_ITEM_SIZE 
 	
-	camera.zoom = (Vector2(Vars.GRID_MAX_ROWS, Vars.GRID_MAX_COLS) * Vars.GRID_ITEM_SIZE + camera.position * -1) / Vector2(minSize, minSize)
+	position = gridSize / -2.0 + Vector2(1, 1) * Vars.GRID_ITEM_SIZE / 2
+	var minSize = min(OS.window_size.x, OS.window_size.y - guiOffset.rect_size.y)
 	
-	if OS.window_size.x > OS.window_size.y:
-		camera.position -= Vector2(maxSize - minSize, 0) / 2
-	elif OS.window_size.y > OS.window_size.x:
-		camera.position -= Vector2(0, maxSize - minSize) / 2
-		
-#	printt("zoom", camera.zoom, "position", camera.position, "window", OS.window_size, "minSize", minSize, "maxSize", maxSize)
-
-#	OS.window_size = Vector2(Vars.GRID_MAX_COLS, Vars.GRID_MAX_ROWS) * Vars.GRID_ITEM_SIZE + camera.position * -1
-#	OS.window_size = Vector2(GRID_MAX_COLS, GRID_MAX_ROWS) * GRID_ITEM_SIZE + Vector2(GRID_ITEM_SIZE, GRID_ITEM_SIZE)
+	camera.zoom = gridSize / Vector2(minSize, minSize)
+	camera.offset.y = guiOffset.rect_size.y / 2 * camera.zoom.y
 	
-#	get_tree().set_screen_stretch(SceneTree.STRETCH_MODE_VIEWPORT, SceneTree.STRETCH_ASPECT_EXPAND, OS.window_size, 1)
-
-func _input(event):
-	if event is InputEventKey and event.is_pressed() and event.scancode == KEY_F:
-		correctWindowSize()
+#
+#func _input(event):
+##	if event is InputEventKey and event.is_pressed() and event.scancode == KEY_F:
+##		correctWindowSize()
+#	if event is InputEventMouseButton:
+#		if not event.pressed and draggingItem != null and not isSwitching:
+#			printt("start", draggingItem.position, "end", event.position)
 
 # checks if there is space below an item
-
 func checkFreeSpace():
 	
 	for x in range(Vars.GRID_MAX_ROWS):
@@ -70,26 +101,13 @@ func checkFreeSpace():
 				
 		if freeSpace > 0:
 			createNewItem(freeSpace, x)
-#			checkCombos()
-#		if freeSpace > 0:
-#			var item = getGridItem(x, 0)
-#			item.dropByPlaces(freeSpace)
 			
 # create a defined number of new items on the given x coordinate, that will drop ..
 func createNewItem(rowItemCount, x):
 	
 	for y in range(rowItemCount):
 		
-		"""
-			Y
-			Y
-		x x   x
-		x x   x
-		x x x x
-		x x x x
-		"""
-			
-		var ItemNode = RasterItem.instance()
+		var ItemNode = RasterItemNode.instance()
 #		ItemNode.position.x = x * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_COLS/2 * Vars.GRID_ITEM_SIZE
 #		ItemNode.position.y = (rowItemCount * -1 + y) * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
 		ItemNode.position.x = x * Vars.GRID_ITEM_SIZE
@@ -127,7 +145,7 @@ func checkCombos():
 
 		for x in range(Vars.GRID_MAX_COLS):
 			
-			var item = getGridItem(x,y)
+			var item = getGridItem(x, y)
 			if item:
 				if lastItemId == item.itemId and item.itemId >= 0:
 					counter = counter + 1
@@ -156,7 +174,7 @@ func checkCombos():
 
 		for y in range(Vars.GRID_MAX_ROWS):
 			
-			var item = getGridItem(x,y)
+			var item = getGridItem(x, y)
 			if item:
 				if lastItemId == item.itemId and item.itemId >= 0:
 					counter = counter + 1
@@ -200,22 +218,21 @@ func cleanRaster():
 		ScoreManager.increaseMultiplier()
 		for y in range(Vars.GRID_MAX_ROWS):
 			for x in range(Vars.GRID_MAX_COLS):
-				var item = getGridItem(x,y)
+				var item = getGridItem(x, y)
 				if item:
 					if item.toBeCleaned:
 						item.itemId = -2
 						hasRemoved = true
-						remove_child(getGridItem(x,y))
+						remove_child(getGridItem(x, y))
 		if hasRemoved:
 			SoundManager.play("res://assets/sounds/coin_02.wav", 1.0 + ScoreManager.multiplier_current /  4.0, 0)
 			checkFreeSpace()
 	else:
 		ScoreManager.resetMultiplier()
+		
+		fixBoard()
 #		print("no groups found")
 	isChecking = false
-		
-
-
 
 # starts dragging an item
 func startDragging(startItem: RasterItem):
@@ -224,19 +241,48 @@ func startDragging(startItem: RasterItem):
 		draggingItem.startSelection()
 		draggingItem.isDragging = true
 
+# get corrected target drag item - in case you tried to drag too far
+func getCorrectTargetItem(targetItem: RasterItem) -> RasterItem:
+	
+	var directionX = targetItem.rasterX - draggingItem.rasterX
+	var directionY = targetItem.rasterY - draggingItem.rasterY
+	
+	# ending on same item
+	if directionX == 0 and directionY == 0: 
+		return null
+	
+	# switch if x +- 1 OR y +-1
+	if (directionX == 0 or directionY == 0) and (abs(directionX) == 1 or abs(directionY) == 1):
+		return targetItem
+		
+	# tried to switch diagonally
+	if abs(directionX) == abs(directionY):
+		return null
+	
+	# if switching between further items
+	if abs(directionX) > abs(directionY):
+		if directionX > 0:
+			# switch with Y,X+1
+			return getGridItem(draggingItem.rasterX + 1, draggingItem.rasterY)
+		else:
+			# switch with Y,X-1
+			return getGridItem(draggingItem.rasterX - 1, draggingItem.rasterY)
+	else:
+		if directionY > 0:
+			# switch with Y+1,X
+			return getGridItem(draggingItem.rasterX, draggingItem.rasterY + 1)
+		else:
+			# switch with Y-1,X
+			return getGridItem(draggingItem.rasterX, draggingItem.rasterY - 1)
+	
+	return null
+
 # let an item drop
 func endDragging(targetItem: RasterItem):
-	if draggingItem != null && not isSwitching and not targetItem.isSwitching:
-		# only switch if x +- 1 OR y +-1
-		if ((targetItem.rasterX + 1 == draggingItem.rasterX and
-			targetItem.rasterY == draggingItem.rasterY) or
-			(targetItem.rasterX - 1 == draggingItem.rasterX and
-			targetItem.rasterY == draggingItem.rasterY) or
-			(targetItem.rasterX == draggingItem.rasterX and
-			targetItem.rasterY + 1 == draggingItem.rasterY) or
-			(targetItem.rasterX == draggingItem.rasterX and
-			targetItem.rasterY - 1 == draggingItem.rasterY)):
-
+	if draggingItem != null and targetItem != null and not isSwitching:
+		targetItem = getCorrectTargetItem(targetItem)
+		
+		if targetItem and not targetItem.isSwitching:
 			isSwitching = true
 			targetItem.isSwitching = true
 			draggingItem.isSwitching = true
@@ -264,32 +310,13 @@ func endDragging(targetItem: RasterItem):
 
 #			printt ("elements switched ", oldGrid, " > ", grid[targetItem.rasterY][targetItem.rasterX]["itemId"] )
 		else:
-			printt ("elements not switched")
+#			printt ("elements not switched")
 			draggingItem.isDragging = false
 			draggingItem.endSelection()
 			draggingItem = null
 
-# add a tween to the moving item, connects to events
-#func addTween(item: RasterItem, toPosition: Vector2):
-#	var tween = Tween.new()
-#
-#	tween.name = "Tween"
-#	tween.interpolate_property(item, "position",
-#			item.position, toPosition, switchingTime,
-#			Tween.TRANS_BOUNCE, Tween.EASE_OUT)
-#
-#	tween.connect("tween_step", self, "_on_Tween_step", [item])
-#	tween.connect("tween_all_completed", self, "_on_Tween_all_completed", [item])
-#
-#	item.add_child(tween)
-#
-#	tween.start()
-
-
 # when all movement is done, allow switching again and remove tween
 func _on_Tween_all_completed(item: RasterItem):
-	
-
 	if item.isSwitching:
 #		printt("all movement completed")
 		isSwitching = false
@@ -310,8 +337,3 @@ func _on_Tween_step(_object, _key, elapsed, _value, _item: RasterItem):
 	if elapsed > Vars.TIME_SWITCHING * 0.4 and isSwitching:
 #		printt("movement at", key, elapsed, value)
 		isSwitching = false
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass

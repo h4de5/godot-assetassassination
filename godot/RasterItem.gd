@@ -94,6 +94,5 @@ func dropByPlaces(itemCount: int):
 func _on_Area2D_mouse_entered():
 	pass # Replace with function body.
 
-
 func _on_Area2D_mouse_exited():
 	pass # Replace with function body.
